@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aaron's Sick Page</title>
+  <style>
+    .draggable {
+      fill: blue;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+<script>
+let stage = {
+  w : 500,
+  h : 500
+}
+
+let mousex;
+let mousey;
+let mouseDown = false;
+let intervalID = null;
+let IM_LEADER = false;
+
+// upon close, subtract windows again
+window.onbeforeunload = function() {
+  let windows = parseFloat(localStorage.getItem('alive_windows')) - 1;
+  windows = windows < 0 ? 0 : windows;
+  localStorage.setItem('alive_windows', windows);
+  if (IM_LEADER) { localStorage.setItem('leader', 'none'); }
+}
+
+
+window.addEventListener("storage", electWindow());
+
+window.onload = function() {
+  let circle = document.getElementById("circle");
+  let svg = document.getElementById("svg");
+  let r = circle.getAttributeNS(null, "r");
+
+  let windows = parseFloat(localStorage.getItem('alive_windows'));
+  windows += 1;
+  localStorage.setItem('alive_windows', windows);
+
+  electWindow();
+  console.log(windows);
+
+  if (window.Event) {
+    document.captureEvents(Event.MOUSEMOVE);
+  }
+
+  document.onmousemove = getCursorXY;
+  document.onmousedown = function() { mouseDown = true; }
+  document.onmouseup = function() { mouseDown = false; }
+
+}
+
+function electWindow() {
+  let leader = localStorage.getItem('leader');
+  console.log(leader);
+  console.log(IM_LEADER);
+  if (leader == "none" || !leader) {
+    localStorage.setItem('leader', 'exists');
+    circle.style.visibility = "visible";
+    intervalID = setInterval(onTick, 16);
+    IM_LEADER = true;
+  } else {
+    circle.style.visibility = "hidden";
+    if (intervalID) { clearInterval(intervalID); }
+  }
+}
+
+function getCursorXY(e) {
+  mousex = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+  mousey = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+}
+
+function startDrag(element) { 
+  circle.classList.add("draggable"); 
+}
+
+function stopDrag(element) { 
+  circle.classList.remove("draggable"); 
+}
+
+dy = 0;
+dx = 0;
+g = 0.5;
+function fall() {
+  // grab element position
+  let r = parseFloat(circle.getAttributeNS(null, 'r'));
+  let x = parseFloat(circle.getAttributeNS(null, 'cx'));
+  let y = parseFloat(circle.getAttributeNS(null, 'cy'));
+
+  if (-g*2 < dx && dx < g*2) { dx = 0; }
+
+  // fall and bounce off the bottom
+  if ((y + r) < stage.h - 5 && (y - r) > 0) {
+    y += dy;
+    dy += g;
+  } else {
+    if (-g*5 < dy && dy < g*5) { dy = 0; } // set velocity to 0 if close enough
+    if (y > stage.h/2) { y = stage.h - 5.1 - r; }
+    else { y = 5.1 + r; }
+    dy = -dy * 0.6;
+    dx = dx  * 0.6;
+  }
+
+  x += dx;
+
+  // bounce off the sides
+  if ((x + r) > stage.w || (x - r) < 0) {
+    if ((x + r) > stage.w) { x = stage.w-r; }
+    else { x = r; }
+    dx = -dx;
+  }
+
+  // set delta positions
+  circle.setAttributeNS(null, 'cx', x);
+  circle.setAttributeNS(null, 'cy', y);
+}
+
+let prev_mousex = 0;
+let prev_mousey = 0;
+function drag() {
+  let r = parseFloat(circle.getAttributeNS(null, 'r'));
+
+  if (!mouseDown) {
+    stopDrag(circle);
+  }
+
+  dx = (mousex - prev_mousex) / 3;
+  dy = (mousey - prev_mousey) / 3;
+
+  if (0 < mousex - r && mousex + r < stage.w) {
+    circle.setAttributeNS(null, 'cx', mousex);
+    prev_mousex = mousex;
+  }
+
+  if (0 < mousey - r && mousey + r < stage.h) {
+    circle.setAttributeNS(null, 'cy', mousey);
+    prev_mousey = mousey;
+  }
+}
+
+function onTick() {
+  if (circle.classList.contains("draggable")) {
+    drag();
+  } else {
+    fall();
+  }
+
+  if (stage.w != window.innerWidth || stage.h != window.innerHeight) {
+    changeSVG();
+  }
+}
+
+function changeSVG() {
+  body = window;
+
+  svg.setAttributeNS(null, 'width', body.innerWidth);
+  svg.setAttributeNS(null, 'height', body.innerHeight);
+  stage.w = body.innerWidth;
+  stage.h = body.innerHeight;
+}
+
+</script>
+</head>
+<body>
+  <svg onload="changeSVG()" id="svg" height="500" width="500" >
+    <circle 
+      id="circle" 
+      cx="50" cy="50" 
+      r="40" 
+      stroke="black" fill="red" stroke-width="3" 
+
+      onmouseup="stopDrag(this)"
+      onmousedown="startDrag(this)"
+    />
+  </svg>
+</body>
+</html>

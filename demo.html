@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cluster Demo</title>
+    <style>
+
+        #main {
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            vertical-align: center;
+        }
+
+        .not-leader { background-color: red; }
+        .leader { background-color: green; }
+
+        .draggable {
+            fill: blue;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+    <script src="demo.js"></script>
+<body onmousemove="getCursorXY(this)">
+    <h1 id="name"></h1>
+    <svg onload="SVG.update()" id="svg" height="500" width="500" >
+        <circle 
+        id="circle" 
+        cx="50" cy="50" 
+        r="40" stroke="black" fill="red" stroke-width="3" 
+
+        onmouseup="Circle.stop_drag()"
+        onmousedown="Circle.start_drag()"
+        />
+    </svg>
+</body>

@@ -382,7 +382,8 @@ window.onload = function() {
     refreshName();
 }
 
-let circleInterval;
+let circleInterval; // declare the interval number, so that it can be cleared later
+
 function checkLeader() {
     let leader = localStorage.getItem("leader");
     if (!leader || leader == "undefined") {
@@ -392,7 +393,7 @@ function checkLeader() {
     }
     if (leader == window.name) { // we are leader
         if (!circleInterval) {
-            circleInterval = setInterval(tick, 16);
+            circleInterval = setInterval(tick, 16); // only setinterval if one does not already exist
         }
         Circle.instance().style.visibility = "visible";
         return true;
